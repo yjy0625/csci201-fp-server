@@ -23,6 +23,7 @@ public class FileService {
 	
 	private static final String UPLOAD_FOLDER = "/user/yjy/FileServer/"; 
 	private static final String USER_IMAGE_SUBFOLDER = "User/";
+	private static final String POST_IMAGE_SUBFOLDER = "User/";
 	
 	public FileService() {
 		
@@ -84,6 +85,65 @@ public class FileService {
 				"attachment; filename=" + filename
 				).build();
 		
+	}
+	
+	@POST
+	@Path("image/upload/post/{id}/index/{index}")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public Response uploadPostImage(
+			@PathParam("id") String id, 
+			@PathParam("index") int index,
+			@FormDataParam("file") InputStream is,
+			@FormDataParam("file") FormDataContentDisposition fileDetail) {
+		final String folderPath = UPLOAD_FOLDER + POST_IMAGE_SUBFOLDER;
+		
+		if(is == null) {
+			return Response.status(400)
+					.entity("Invalid data")
+					.build();
+		}
+		
+		try {
+			createFolderIfNotExists(folderPath);
+		}
+		catch(SecurityException se) {
+			return Response.status(500)
+					.entity("Can not create destination folder on server")
+					.build();
+		}
+		
+		String uploadLocation = folderPath + id + "-" + index + "-" + fileDetail.getFileName();
+		try {
+			saveToFile(is, uploadLocation);
+		}
+		catch(IOException ioe) {
+			return Response.status(500).
+					entity("Can not save file")
+					.build();
+		}
+		
+		return Response.status(200)
+				.entity("File saved to " + uploadLocation)
+				.build();
+		
+	}
+	
+	@GET
+	@Path("image/download/post/{id}/index/{index}/filename/{filename}")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response downloadPostImage(
+			@PathParam("id") String id, 
+			@PathParam("index") String index,
+			@PathParam("filename") String filename) 
+	{
+		final String filePath = UPLOAD_FOLDER + POST_IMAGE_SUBFOLDER + id + "-" + index + "-" + filename;
+		
+		File file = new File(filePath);
+		
+		return Response.ok((Object) file).header(
+				"Content-Disposition", 
+				"attachment; filename=" + filename
+				).build();
 	}
 	
 	private void saveToFile(InputStream is, String target) throws IOException {

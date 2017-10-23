@@ -37,19 +37,19 @@ public class MongoDatabaseReader implements DatabaseReader {
 	private static final String USER_COLLECTION = "User";
 	private static final String PLACE_COLLECTION = "Place";
 	private static final String POST_COLLECTION = "Post";
-	
+
 	// database object
 	private MongoDatabase database = null;
-	
+
 	// logger for the class
 	private final Logger logger = LogManager.getLogger("DatabaseReader");
-	
+
 	// server cache
 	private final Jedis cache = new Jedis();
 	private static final int TTL = 600;
-	
+
 	private Gson gson;
-	
+
 	// private constructor
 	// prevent initialization elsewhere
 	@SuppressWarnings("resource")
@@ -57,42 +57,42 @@ public class MongoDatabaseReader implements DatabaseReader {
 		MongoClientURI uri = new MongoClientURI(MONGO_CLIENT_URI);
 		MongoClient mongoClient = new MongoClient(uri);
 		this.database = mongoClient.getDatabase(DATABASE_NAME);
-		
+
 		gson = new GsonBuilder()
 				.registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (json, typeOfT, context) -> new Date(new Gson().fromJson(json, JsonObject.class).get("$date").getAsLong()))
 				.create();
-		
+
 		logger.debug("Created DatabaseReader instance.");
 	}
-	
+
 	public boolean signIn(String email, String password) {
 		User user = getUserByEmail(email);
-		
+
 		// handle user not found error
 		if(user == null) {
 			logger.debug("Sign in failed: user with email {} doesn't exist.", email);
 			return false;
 		}
-		
+
 		logger.debug("Sign in succeeded: user with email {}.", email);
 		return password.equals(user.getPassword());
 	}
-	
+
 	public User getUserById(String id) {
-		String userKeyId = "user/id" + id;
+		String userKeyId = "user/id/" + id;
 		String cachedUser = cache.get(userKeyId);
 		User user = null;
-		
+
 		// user not in cache
 		if(cachedUser == null) {
-			MongoCollection<Document> userCollection = database.getCollection(USER_COLLECTION); 
+			MongoCollection<Document> userCollection = database.getCollection(USER_COLLECTION);
 			Document userDocument = userCollection.find(Filters.eq("id", id)).first();
-			
+
 			if(userDocument == null) {
 				logger.debug("Get user information failed: user with id {} doesn't exist.", id);
 				return null;
 			}
-			
+
 			try {
 				String jsonString = userDocument.toJson();
 				Gson gson = new Gson();
@@ -102,7 +102,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 				logger.error("Get user information failed: parsing user with id {} results in error {}.", id, jpe.getMessage());
 				return null;
 			}
-			
+
 			// add user information in cache
 			cache.set(userKeyId, gson.toJson(user));
 			String userKeyEmail = "user/email/" + user.getEmail();
@@ -112,28 +112,28 @@ public class MongoDatabaseReader implements DatabaseReader {
 		else {
 			user = gson.fromJson(cachedUser, User.class);
 		}
-		
+
 		// update expiration time
 		cache.expire(userKeyId, TTL);
-		
+
 		return user;
 	}
-	
+
 	public User getUserByEmail(String email) {
-		String userKeyEmail = "user/email" + email;
+		String userKeyEmail = "user/email/" + email;
 		String cachedUser = cache.get(userKeyEmail);
 		User user = null;
-		
+
 		// user not in cache
 		if(cachedUser == null) {
-			MongoCollection<Document> userCollection = database.getCollection(USER_COLLECTION); 
+			MongoCollection<Document> userCollection = database.getCollection(USER_COLLECTION);
 			Document userDocument = userCollection.find(Filters.eq("email", email)).first();
-			
+
 			if(userDocument == null) {
 				logger.debug("Get user information failed: user with email {} doesn't exist.", email);
 				return null;
 			}
-			
+
 			try {
 				String jsonString = userDocument.toJson();
 				Gson gson = new Gson();
@@ -143,7 +143,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 				logger.error("Get user information failed: parsing user with email {} results in error {}.", email, jpe.getMessage());
 				return null;
 			}
-			
+
 			// add user information in cache
 			cache.set(userKeyEmail, gson.toJson(user));
 			String userKeyId = "user/id/" + user.getId();
@@ -153,41 +153,41 @@ public class MongoDatabaseReader implements DatabaseReader {
 		else {
 			user = gson.fromJson(cachedUser, User.class);
 		}
-		
+
 		// update expiration time
 		cache.expire(userKeyEmail, TTL);
-		
+
 		return user;
 	}
-	
+
 	public long getUserRank(int score) {
 		MongoCollection<Document> userCollection = database.getCollection(USER_COLLECTION);
-		
+
 		// count the number of users with score higher than the given score
 		Document query = new Document("score", new Document("$gt", score));
-		
+
 		// add that value by one (e.g. if query results in 0 then rank is 1st place)
 		long rank = userCollection.count(query) + 1;
-		
+
 		logger.debug("Got rank of user with score {}: {}.", score, rank);
 		return rank;
 	}
-	
+
 	public Place getPlaceById(String id) {
-		String placeKey = "place/id" + id;
+		String placeKey = "place/id/" + id;
 		String cachedPlace = cache.get(placeKey);
 		Place place = null;
-		
+
 		// user not in cache
 		if(cachedPlace == null) {
-			MongoCollection<Document> placeCollection = database.getCollection(PLACE_COLLECTION); 
+			MongoCollection<Document> placeCollection = database.getCollection(PLACE_COLLECTION);
 			Document placeDocument = placeCollection.find(Filters.eq("id", id)).first();
-			
+
 			if(placeDocument == null) {
 				logger.debug("Get place information failed: place with id {} doesn't exist.", id);
 				return null;
 			}
-			
+
 			try {
 				String jsonString = placeDocument.toJson();
 				Gson gson = new Gson();
@@ -197,23 +197,23 @@ public class MongoDatabaseReader implements DatabaseReader {
 				logger.error("Get place information failed: parsing place with id {} results in error {}.", id, jpe.getMessage());
 				return null;
 			}
-			
+
 			// add place information in cache
 			cache.set(placeKey, gson.toJson(place));
 		}
 		else {
 			place = gson.fromJson(cachedPlace, Place.class);
 		}
-		
+
 		// update expiration time
 		cache.expire(placeKey, TTL);
 
 		return place;
 	}
-	
+
 	public List<Place> getPlacesInArea(double minLat, double maxLat, double minLon, double maxLon) {
 		MongoCollection<Document> placeCollection = database.getCollection(PLACE_COLLECTION);
-		
+
 		// define query result accumulation block
 		List<Place> queryResult = new ArrayList<Place>();
 		Block<Document> addSingleResult = new Block<Document>() {
@@ -228,7 +228,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 				catch(JSONParseException jpe) {
 					logger.error("Get places in area failed: parsing place with json string {} results in error {}.", placeDocument.toJson(), jpe.getMessage());
 				}
-				
+
 				queryResult.add(place);
 			}
 		};
@@ -236,11 +236,11 @@ public class MongoDatabaseReader implements DatabaseReader {
 		// execute query and record results to list
 		placeCollection.find(Filters.and(Filters.gt("lat", minLat), Filters.lt("lat", maxLat), Filters.gt("lon", minLon), Filters.lt("lon", maxLon)))
 				.forEach(addSingleResult);
-		
+
 		logger.debug("Get places in area (lat between {} and {}; lon between {} and {}) returns {} results.", minLat, maxLat, minLon, maxLon, queryResult.size());
 		return queryResult;
 	}
-	
+
 	public List<Place> getPlacesVisitedByUserWithId(String id) {
 		MongoCollection<Document> placeCollection = database.getCollection(PLACE_COLLECTION);
 		List<Post> postsByUser = getPosts(id, Integer.MAX_VALUE);
@@ -249,7 +249,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 		for(String place: places) {
 			System.out.println(place);
 		}
-		
+
 		// define query result accumulation block
 		List<Place> queryResult = new ArrayList<Place>();
 		Block<Document> addSingleResult = new Block<Document>() {
@@ -264,7 +264,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 				catch(JSONParseException jpe) {
 					logger.error("Get places visited by user with id {} failed: parsing place with json string {} results in error {}.", id, placeDocument.toJson(), jpe.getMessage());
 				}
-				
+
 				queryResult.add(place);
 			}
 		};
@@ -272,30 +272,30 @@ public class MongoDatabaseReader implements DatabaseReader {
 		// execute query and record results to list
 		placeCollection.find(Filters.in("id", places))
 				.forEach(addSingleResult);
-		
+
 		logger.debug("Get places visited by user with id {} returns {} results.", id, queryResult.size());
 		return queryResult;
 	}
-	
+
 	public List<Post> getPosts() {
 		return getPosts(null, null, Integer.MAX_VALUE);
 	}
-	
+
 	public List<Post> getPosts(int maxLength) {
 		return getPosts(null, null, maxLength);
 	}
-	
+
 	public List<Post> getPosts(String id, int maxLength) {
 		return getPosts(id, null, maxLength);
 	}
-	
+
 	public List<Post> getPosts(Date endTime, int maxLength) {
 		return getPosts(null, endTime, maxLength);
 	}
-	
+
 	public List<Post> getPosts(String id, Date endTime, int maxLength) {
 		MongoCollection<Document> postCollection = database.getCollection(POST_COLLECTION);
-		
+
 		// define query result accumulation block
 		List<Post> queryResult = new ArrayList<Post>();
 		Block<Document> addSingleResult = new Block<Document>() {
@@ -312,11 +312,11 @@ public class MongoDatabaseReader implements DatabaseReader {
 				catch(JSONParseException jpe) {
 					logger.error("Get posts in user failed: parsing post with json string {} results in error {}.", postDocument.toJson(), jpe.getMessage());
 				}
-				
+
 				queryResult.add(post);
 			}
 		};
-		
+
 		// execute query and record results to list
 		Bson filter;
 		if(id == null && endTime == null) {
@@ -336,7 +336,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 				.sort(Sorts.descending("timestamp"))
 				.limit(maxLength)
 				.forEach(addSingleResult);
-		
+
 		// logging
 		if(id == null && endTime == null) {
 			logger.debug("Get all public posts of all time with length limit {} returns {} results.", maxLength, queryResult.size());
@@ -350,15 +350,15 @@ public class MongoDatabaseReader implements DatabaseReader {
 		else {
 			logger.debug("Get posts by user {} before {} with length limit {} returns {} results.", id, endTime, maxLength, queryResult.size());
 		}
-		
+
 		return queryResult;
 	}
-	
+
 	public void updateUserToCache(User user) {
-		String userKeyId = "user/id" + user.getId();
+		String userKeyId = "user/id/" + user.getId();
 		cache.set(userKeyId, gson.toJson(user));
 		cache.expire(userKeyId, TTL);
-		String userKeyEmail = "user/id" + user.getEmail();
+		String userKeyEmail = "user/id/" + user.getEmail();
 		cache.set(userKeyEmail, gson.toJson(user));
 		cache.expire(userKeyEmail, TTL);
 	}
@@ -368,5 +368,5 @@ public class MongoDatabaseReader implements DatabaseReader {
 		cache.set(placeId, gson.toJson(place));
 		cache.expire(placeId, TTL);
 	}
-	
+
 }
