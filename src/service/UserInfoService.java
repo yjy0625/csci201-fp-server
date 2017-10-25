@@ -42,7 +42,7 @@ public class UserInfoService {
 	}
 	
 	@GET
-	@Path("email/{email}")
+	@Path("email/{email: .*}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getUserInfoByEmail(@PathParam("email") String email) {
 		User user = dbReader.getUserByEmail(email);
@@ -80,7 +80,7 @@ public class UserInfoService {
 	}
 	
 	@POST
-	@Path("update/id/{id}/password/{password}")
+	@Path("update/id/{id}/password/{password: .*}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response updateUserPassword(
 			@PathParam("password") String editedPassword,

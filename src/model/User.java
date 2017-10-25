@@ -9,7 +9,6 @@ public class User implements Serializable {
 	private String email;
 	private String name;
 	private String password;
-	private String avatarUrl;
 	private int score;
 	
 	public String getId() {
@@ -26,10 +25,6 @@ public class User implements Serializable {
 	
 	public String getPassword() {
 		return password;
-	}
-
-	public String getAvatarUrl() {
-		return avatarUrl;
 	}
 
 	public int getScore() {

@@ -30,7 +30,6 @@ public class MongoDatabaseReaderTest {
 		assertEquals("Tommy Trojan", user.getName());
 		assertEquals(true, user.getEmail() != null);
 		assertEquals(true, user.getId() != null);
-		assertEquals(true, user.getAvatarUrl() != null);
 	}
 	
 	@Test
@@ -46,7 +45,6 @@ public class MongoDatabaseReaderTest {
 		assertEquals("Tommy Trojan", user.getName());
 		assertEquals(true, user.getEmail() != null);
 		assertEquals(true, user.getId() != null);
-		assertEquals(true, user.getAvatarUrl() != null);
 	}
 	
 	@Test

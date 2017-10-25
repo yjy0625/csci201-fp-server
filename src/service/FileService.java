@@ -1,29 +1,29 @@
 package service;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 @Path("/file")
 public class FileService {
 	
-	private static final String UPLOAD_FOLDER = "/user/yjy/FileServer/"; 
-	private static final String USER_IMAGE_SUBFOLDER = "User/";
-	private static final String POST_IMAGE_SUBFOLDER = "User/";
+	private static final int MAX_SIZE_IN_MB = 2;
+	
+	private static final java.nio.file.Path USER_IMAGE_DIR = Paths.get(System.getProperty("user.home"), "FileServer", "User");
+	private static final java.nio.file.Path POST_IMAGE_DIR = Paths.get(System.getProperty("user.home"), "FileServer", "Post");
 	
 	public FileService() {
 		
@@ -31,138 +31,164 @@ public class FileService {
 	
 	@POST
 	@Path("image/upload/user/{id}")
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Consumes({"image/jpeg", "image/png"})
 	public Response uploadUserAvatarImage(
 			@PathParam("id") String id, 
-			@FormDataParam("file") InputStream is,
-			@FormDataParam("file") FormDataContentDisposition fileDetail) {
-		final String folderPath = UPLOAD_FOLDER + USER_IMAGE_SUBFOLDER;
+			InputStream is, 
+			@HeaderParam("Content-Type") String fileType, 
+			@HeaderParam("Content-Length") long fileSize) {
 		
+		// throw error if there is no image input
 		if(is == null) {
 			return Response.status(400)
 					.entity("Invalid data")
 					.build();
 		}
 		
-		try {
-			createFolderIfNotExists(folderPath);
-		}
-		catch(SecurityException se) {
-			return Response.status(500)
-					.entity("Can not create destination folder on server")
-					.build();
-		}
+		// throw error if image size too large
+		if (fileSize > 1024 * 1024 * MAX_SIZE_IN_MB) {
+            throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("Image is larger than " + MAX_SIZE_IN_MB + "MB").build());
+        }
 		
-		String uploadLocation = folderPath + id + "-" + fileDetail.getFileName();
+		// construct image file name 
+		String filename = id;
+		
+		if (fileType.equals("image/jpeg")) {
+			filename += ".jpg";
+        } else {
+        		filename += ".png";
+        }
+		
+		// save file
 		try {
-			saveToFile(is, uploadLocation);
+			Files.copy(is, USER_IMAGE_DIR.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch(IOException ioe) {
 			return Response.status(500).
-					entity("Can not save file")
+					entity("Cannot save file")
 					.build();
 		}
 		
-		return Response.status(200)
-				.entity("File saved to " + uploadLocation)
-				.build();
+		return Response.status(200).entity("File saved successfully.").build();
 		
 	}
 	
 	@GET
-	@Path("image/download/user/{id}/filename/{filename}")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public Response downloadUserAvatarImage(
-			@PathParam("id") String id, 
-			@PathParam("filename") String filename) 
-	{
-		final String filePath = UPLOAD_FOLDER + USER_IMAGE_SUBFOLDER + id + "-" + filename;
+	@Path("image/download/user/{id}")
+	@Produces({"image/jpeg", "image/png"})
+	public Response downloadUserAvatarImage(@PathParam("id") String id) {
 		
-		File file = new File(filePath);
+		// guess file type
+		String fileType = "jpeg";
 		
-		return Response.ok((Object) file).header(
-				"Content-Disposition", 
-				"attachment; filename=" + filename
-				).build();
+		java.nio.file.Path dest = USER_IMAGE_DIR.resolve(id + ".jpg");
+		if(!Files.exists(dest)) {
+			dest = USER_IMAGE_DIR.resolve(id + ".png");
+			fileType = "png";
+		}
 		
+		// throw error if neither JPG nor PNG file is found
+		if(!Files.exists(dest)) {
+			throw new WebApplicationException(Status.NOT_FOUND);
+		}
+		
+		// construct response
+		Response response = null;
+		
+		try {
+			response = Response.ok(Files.newInputStream(dest), "image/" + fileType)
+					.build();
+		}
+		catch(IOException ioe) {
+			response = Response.status(500).
+					entity("Cannot read file")
+					.build();
+			return response;
+		}
+		
+		return response;
 	}
 	
 	@POST
 	@Path("image/upload/post/{id}/index/{index}")
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Consumes({"image/jpeg", "image/png"})
 	public Response uploadPostImage(
 			@PathParam("id") String id, 
 			@PathParam("index") int index,
-			@FormDataParam("file") InputStream is,
-			@FormDataParam("file") FormDataContentDisposition fileDetail) {
-		final String folderPath = UPLOAD_FOLDER + POST_IMAGE_SUBFOLDER;
+			InputStream is, 
+			@HeaderParam("Content-Type") String fileType, 
+			@HeaderParam("Content-Length") long fileSize) {
 		
+		// throw error if there is no image input
 		if(is == null) {
 			return Response.status(400)
 					.entity("Invalid data")
 					.build();
 		}
 		
-		try {
-			createFolderIfNotExists(folderPath);
-		}
-		catch(SecurityException se) {
-			return Response.status(500)
-					.entity("Can not create destination folder on server")
-					.build();
-		}
+		// throw error if image size too large
+		if (fileSize > 1024 * 1024 * MAX_SIZE_IN_MB) {
+            throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("Image is larger than " + MAX_SIZE_IN_MB + "MB").build());
+        }
 		
-		String uploadLocation = folderPath + id + "-" + index + "-" + fileDetail.getFileName();
+		// construct image file name 
+		String filename = id + "-" + index;
+		
+		if (fileType.equals("image/jpeg")) {
+			filename += ".jpg";
+        } else {
+        		filename += ".png";
+        }
+		
+		// save file
 		try {
-			saveToFile(is, uploadLocation);
+			Files.copy(is, POST_IMAGE_DIR.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch(IOException ioe) {
 			return Response.status(500).
-					entity("Can not save file")
+					entity("Cannot save file")
 					.build();
 		}
 		
-		return Response.status(200)
-				.entity("File saved to " + uploadLocation)
-				.build();
+		return Response.status(200).entity("File saved successfully.").build();
 		
 	}
 	
 	@GET
-	@Path("image/download/post/{id}/index/{index}/filename/{filename}")
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public Response downloadPostImage(
-			@PathParam("id") String id, 
-			@PathParam("index") String index,
-			@PathParam("filename") String filename) 
-	{
-		final String filePath = UPLOAD_FOLDER + POST_IMAGE_SUBFOLDER + id + "-" + index + "-" + filename;
+	@Path("image/download/post/{id}/index/{index}")
+	@Produces({"image/jpeg", "image/png"})
+	public Response downloadPostImage(@PathParam("id") String id, @PathParam("index") int index) {
+			
+		// guess file type
+		String fileType = "jpeg";
 		
-		File file = new File(filePath);
+		java.nio.file.Path dest = POST_IMAGE_DIR.resolve(id + "-" + index + ".jpg");
+		if(!Files.exists(dest)) {
+			dest = POST_IMAGE_DIR.resolve(id + "-" + index + ".png");
+			fileType = "png";
+		}
 		
-		return Response.ok((Object) file).header(
-				"Content-Disposition", 
-				"attachment; filename=" + filename
-				).build();
-	}
-	
-	private void saveToFile(InputStream is, String target) throws IOException {
-		OutputStream os = null;
-		int read = 0;
-		byte[] bytes = new byte[1024];
-		os = new FileOutputStream(new File(target));
-		while ((read = is.read(bytes)) != -1) {
-			os.write(bytes, 0, read);
+		// throw error if neither JPG nor PNG file is found
+		if(!Files.exists(dest)) {
+			throw new WebApplicationException(Status.NOT_FOUND);
 		}
-		os.flush();
-		os.close();
-	}
-	
-	private void createFolderIfNotExists(String directoryName) throws SecurityException {
-		File directory = new File(directoryName);
-		if (!directory.exists()) {
-			directory.mkdir();
+		
+		// construct response
+		Response response = null;
+		
+		try {
+			response = Response.ok(Files.newInputStream(dest), "image/" + fileType)
+					.build();
 		}
+		catch(IOException ioe) {
+			response = Response.status(500).
+					entity("Cannot read file")
+					.build();
+			return response;
+		}
+		
+		return response;
+			
 	}
 	
 }

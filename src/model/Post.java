@@ -2,7 +2,6 @@ package model;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 public class Post implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -12,13 +11,12 @@ public class Post implements Serializable {
 	private String placeId;
 	private String userId;
 	private String postContent;
-	private List<String> imageUrls;
+	private int numImages;
 	private boolean isPublic;
 	
 	public String getId() {
 		return id;
 	}
-	
 	public Date getTimestamp() {
 		return timestamp;
 	}
@@ -31,8 +29,8 @@ public class Post implements Serializable {
 	public String getPostContent() {
 		return postContent;
 	}
-	public List<String> getImageUrls() {
-		return imageUrls;
+	public int getNumImages() {
+		return numImages;
 	}
 	public boolean isPublic() {
 		return isPublic;

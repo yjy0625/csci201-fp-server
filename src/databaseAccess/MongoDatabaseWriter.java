@@ -53,7 +53,6 @@ public class MongoDatabaseWriter implements DatabaseWriter {
 										.append("email", user.getEmail())
 										.append("name", user.getName())
 										.append("password", user.getPassword())
-										.append("avatarUrl", user.getAvatarUrl())
 										.append("score", user.getScore());
 		userCollection.insertOne(newUserDocument);
 		logger.debug("Added a user with email {} and name {}.", user.getEmail(), user.getName());
@@ -90,7 +89,7 @@ public class MongoDatabaseWriter implements DatabaseWriter {
 										.append("userId", post.getUserId())
 										.append("placeId", post.getPlaceId())
 										.append("postContent", post.getPostContent())
-										.append("imageUrls", post.getImageUrls())
+										.append("numImages", post.getNumImages())
 										.append("isPublic", post.isPublic());
 		postCollection.insertOne(newPostDocument);
 		

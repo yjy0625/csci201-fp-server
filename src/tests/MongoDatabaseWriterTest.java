@@ -28,7 +28,7 @@ public class MongoDatabaseWriterTest {
 	@Test
 	public void testAddUserSuccess() {
 		Gson gson = new Gson();
-		User mockUser = gson.fromJson("{\"id\":\"1\",\"email\":\"tommy.trojan@usc.edu\",\"name\":\"Tommy Trojan\",\"password\":\"asdf\",\"avatarUrl\":\"usc.edu\",\"score\":0}", User.class);
+		User mockUser = gson.fromJson("{\"id\":\"1\",\"email\":\"tommy.trojan@usc.edu\",\"name\":\"Tommy Trojan\",\"password\":\"asdf\",\"score\":0}", User.class);
 		
 		boolean succeeded = dbWriter.addUser(mockUser);
 		assertEquals(true, succeeded);
@@ -37,7 +37,7 @@ public class MongoDatabaseWriterTest {
 	@Test
 	public void testAddUserFail() {
 		Gson gson = new Gson();
-		User mockUser = gson.fromJson("{\"id\":\"0\",\"email\":\"tommy.trojan@usc.edu\",\"name\":\"Tommy Trojan\",\"password\":\"asdf\",\"avatarUrl\":\"usc.edu\",\"score\":0}", User.class);
+		User mockUser = gson.fromJson("{\"id\":\"0\",\"email\":\"tommy.trojan@usc.edu\",\"name\":\"Tommy Trojan\",\"password\":\"asdf\",\"score\":0}", User.class);
 		
 		boolean succeeded = dbWriter.addUser(mockUser);
 		assertEquals(false, succeeded);
@@ -61,7 +61,7 @@ public class MongoDatabaseWriterTest {
 				.registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (json, typeOfT, context) -> new Date(new Gson().fromJson(json, JsonObject.class).get("$date").getAsLong()))
 				.create();
 		
-		Post mockPost = gson.fromJson("{\"id\":\"0\",\"timestamp\":{\"$date\":2020},\"placeId\":\"0\",\"userId\":\"0\",\"postContent\":\"Hello world!\",\"imageUrls\":[\"usc.edu\"],\"isPublic\":true}", Post.class);
+		Post mockPost = gson.fromJson("{\"id\":\"0\",\"timestamp\":{\"$date\":2020},\"placeId\":\"0\",\"userId\":\"0\",\"postContent\":\"Hello world!\",\"numImages\":1,\"isPublic\":true}", Post.class);
 		
 		boolean succeeded = dbWriter.addPost(mockPost);
 		assertEquals(true, succeeded);

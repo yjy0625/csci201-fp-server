@@ -25,7 +25,7 @@ public class SignInService {
 	}
 	
 	@POST
-	@Path("email/{email}/password/{password}")
+	@Path("email/{email: .*}/password/{password: .*}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response signin(@PathParam("email") String email, @PathParam("password") String password) {
 		User user = dbReader.getUserByEmail(email);

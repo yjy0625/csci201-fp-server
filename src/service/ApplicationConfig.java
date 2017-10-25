@@ -7,6 +7,8 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -24,6 +26,8 @@ public class ApplicationConfig extends Application {
 	
 	// initialization code here
 	public ApplicationConfig() {
+		classes.add(MultiPartFeature.class);
+		
 		Gson gson = new GsonBuilder()
 				.registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (json, typeOfT, context) -> new Date(new Gson().fromJson(json, JsonObject.class).get("$date").getAsLong()))
 				.create();
