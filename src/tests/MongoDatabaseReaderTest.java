@@ -11,6 +11,7 @@ import org.junit.Test;
 import databaseAccess.MongoDatabaseReader;
 import model.Place;
 import model.Post;
+import model.PostResponse;
 import model.User;
 
 // Testing functionalities of database writer
@@ -107,25 +108,25 @@ public class MongoDatabaseReaderTest {
 	
 	@Test
 	public void testGetPosts() {
-		List<Post> posts = dbReader.getPosts();
+		List<PostResponse> posts = dbReader.getPosts();
 		assertEquals(1, posts.size());
 	}
 	
 	@Test
 	public void testGetPostsWithLimit() {
-		List<Post> posts = dbReader.getPosts(1);
+		List<PostResponse> posts = dbReader.getPosts(1);
 		assertEquals(1, posts.size());
 	}
 	
 	@Test
 	public void testGetPostsWithEndTime() {
-		List<Post> posts = dbReader.getPosts(new Date(2021), 0);
+		List<PostResponse> posts = dbReader.getPosts(new Date(2021), 0);
 		assertEquals(1, posts.size());
 	}
 	
 	@Test
 	public void testGetPostsByUser() {
-		List<Post> posts = dbReader.getPosts("0", 0);
+		List<PostResponse> posts = dbReader.getPosts("0", 0);
 		assertEquals(2, posts.size());
 	}
 }

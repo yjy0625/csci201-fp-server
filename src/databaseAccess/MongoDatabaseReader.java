@@ -243,7 +243,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 
 	public List<Place> getPlacesVisitedByUserWithId(String id) {
 		MongoCollection<Document> placeCollection = database.getCollection(PLACE_COLLECTION);
-		List<Post> postsByUser = getPosts(id, Integer.MAX_VALUE);
+		List<Post> postsByUser = getPostsInternal(id, null, Integer.MAX_VALUE);
 		List<String> places = postsByUser.stream().map(item -> item.getPlaceId()).collect(Collectors.toList());
 		System.out.println("debug");
 		for(String place: places) {
@@ -277,23 +277,27 @@ public class MongoDatabaseReader implements DatabaseReader {
 		return queryResult;
 	}
 
-	public List<Post> getPosts() {
+	public List<PostResponse> getPosts() {
 		return getPosts(null, null, Integer.MAX_VALUE);
 	}
 
-	public List<Post> getPosts(int maxLength) {
+	public List<PostResponse> getPosts(int maxLength) {
 		return getPosts(null, null, maxLength);
 	}
 
-	public List<Post> getPosts(String id, int maxLength) {
+	public List<PostResponse> getPosts(String id, int maxLength) {
 		return getPosts(id, null, maxLength);
 	}
 
-	public List<Post> getPosts(Date endTime, int maxLength) {
+	public List<PostResponse> getPosts(Date endTime, int maxLength) {
 		return getPosts(null, endTime, maxLength);
 	}
+	
+	public List<PostResponse> getPosts(String id, Date endTime, int maxLength) {
+		return getPostResponseListFromPostList(getPostsInternal(id, endTime, maxLength));
+	}
 
-	public List<Post> getPosts(String id, Date endTime, int maxLength) {
+	private List<Post> getPostsInternal(String id, Date endTime, int maxLength) {
 		MongoCollection<Document> postCollection = database.getCollection(POST_COLLECTION);
 
 		// define query result accumulation block
@@ -352,6 +356,20 @@ public class MongoDatabaseReader implements DatabaseReader {
 		}
 
 		return queryResult;
+	}
+	
+	private PostResponse getPostResponseFromPost(Post post) {
+		String userName = getUserById(post.getUserId()).getName();
+		String placeName = getPlaceById(post.getPlaceId()).getName();
+		return new PostResponse(post.getId(), post.getTimestamp(), userName, placeName, post.getNumImages(), post.isPublic());
+	}
+	
+	private List<PostResponse> getPostResponseListFromPostList(List<Post> posts) {
+		List<PostResponse> list = new ArrayList<PostResponse>();
+		for(Post post: posts) {
+			list.add(getPostResponseFromPost(post));
+		}
+		return list;
 	}
 
 	public void updateUserToCache(User user) {

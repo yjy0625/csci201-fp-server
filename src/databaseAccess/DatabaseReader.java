@@ -21,15 +21,15 @@ public interface DatabaseReader {
 
 	public List<Place> getPlacesVisitedByUserWithId(String id);
 
-	public List<Post> getPosts();
+	public List<PostResponse> getPosts();
 
-	public List<Post> getPosts(int maxLength);
+	public List<PostResponse> getPosts(int maxLength);
 
-	public List<Post> getPosts(String id, int maxLength);
+	public List<PostResponse> getPosts(String id, int maxLength);
 
-	public List<Post> getPosts(Date endTime, int maxLength);
+	public List<PostResponse> getPosts(Date endTime, int maxLength);
 
-	public List<Post> getPosts(String id, Date endTime, int maxLength);
+	public List<PostResponse> getPosts(String id, Date endTime, int maxLength);
 
 	public void updateUserToCache(User user);
 
