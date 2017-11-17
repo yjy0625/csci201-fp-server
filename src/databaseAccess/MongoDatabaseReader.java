@@ -361,7 +361,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 	private PostResponse getPostResponseFromPost(Post post) {
 		String userName = getUserById(post.getUserId()).getName();
 		String placeName = getPlaceById(post.getPlaceId()).getName();
-		return new PostResponse(post.getId(), post.getTimestamp(), userName, placeName, post.getNumImages(), post.isPublic());
+		return new PostResponse(post.getId(), post.getTimestamp(), post.getUserId(), userName, post.getPlaceId(), placeName, post.getPostContent(), post.getNumImages(), post.isPublic());
 	}
 	
 	private List<PostResponse> getPostResponseListFromPostList(List<Post> posts) {
