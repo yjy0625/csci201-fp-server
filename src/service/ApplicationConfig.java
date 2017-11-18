@@ -26,6 +26,7 @@ public class ApplicationConfig extends Application {
 	
 	// initialization code here
 	public ApplicationConfig() {
+		System.out.println("test");
 		classes.add(MultiPartFeature.class);
 		
 		Gson gson = new GsonBuilder()
