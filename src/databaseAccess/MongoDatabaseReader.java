@@ -33,7 +33,7 @@ import redis.clients.jedis.Jedis;
 // that provides support to all required database read operations
 public class MongoDatabaseReader implements DatabaseReader {
 	private static final String MONGO_CLIENT_URI = "mongodb://android_user:HaQKh4g2vAGGlOCA@cluster0-shard-00-00-s4zvl.mongodb.net:27017,cluster0-shard-00-01-s4zvl.mongodb.net:27017,cluster0-shard-00-02-s4zvl.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin";
-	private static final String DATABASE_NAME = "application";
+	private static final String DATABASE_NAME = "Application";
 	private static final String USER_COLLECTION = "User";
 	private static final String PLACE_COLLECTION = "Place";
 	private static final String POST_COLLECTION = "Post";

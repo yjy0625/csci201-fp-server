@@ -10,17 +10,10 @@ public class Place implements Serializable {
 	private double lat;
 	private double lon;
 	private int points;
-	private String avatarUrl;
 	private int numVisits;
 	
 	public String getId() {
 		return id;
-	}
-	public String getAvatarUrl() {
-		return avatarUrl;
-	}
-	public void setAvatarUrl(String avatarUrl) {
-		this.avatarUrl = avatarUrl;
 	}
 	public String getName() {
 		return name;

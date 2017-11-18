@@ -77,7 +77,6 @@ public class MongoDatabaseReaderTest {
 		List<Place> placesInArea = dbReader.getPlacesInArea(33.0, 35.0, -120.0, -116.0);
 		assertEquals(1, placesInArea.size());
 		assertEquals("Los Angeles", placesInArea.get(0).getName());
-		assertEquals(true, placesInArea.get(0).getAvatarUrl() != null);
 	}
 	
 	@Test
@@ -97,7 +96,6 @@ public class MongoDatabaseReaderTest {
 		List<Place> placesVisited = dbReader.getPlacesVisitedByUserWithId("0");
 		assertEquals(1, placesVisited.size());
 		assertEquals("Los Angeles", placesVisited.get(0).getName());
-		assertEquals(true, placesVisited.get(0).getAvatarUrl() != null);
 	}
 	
 	@Test
