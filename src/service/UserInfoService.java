@@ -54,6 +54,36 @@ public class UserInfoService {
 		return Response.ok(gson.toJson(user), MediaType.APPLICATION_JSON).build();
 	}
 	
+	@GET
+	@Path("rank/id/{id}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response getUserRankById(@PathParam("id") String id) {
+		User user = dbReader.getUserById(id);
+		
+		if(user == null) {
+			throw new WebApplicationException(Response.Status.NOT_FOUND);
+		}
+		
+		long rank = dbReader.getUserRank(user.getScore());
+		
+		return Response.ok("" + rank, MediaType.TEXT_PLAIN).build();
+	}
+	
+	@GET
+	@Path("rank/email/{email: .*}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response getUserRankByEmail(@PathParam("email") String email) {
+		User user = dbReader.getUserByEmail(email);
+		
+		if(user == null) {
+			throw new WebApplicationException(Response.Status.NOT_FOUND);
+		}
+		
+		long rank = dbReader.getUserRank(user.getScore());
+		
+		return Response.ok("" + rank, MediaType.TEXT_PLAIN).build();
+	}
+	
 	@POST
 	@Path("update/id/{id}/username/{username}")
 	@Produces(MediaType.APPLICATION_JSON)

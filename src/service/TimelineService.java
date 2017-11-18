@@ -13,7 +13,7 @@ import javax.ws.rs.core.Response;
 import com.google.gson.Gson;
 
 import databaseAccess.DatabaseReader;
-import model.Post;
+import model.PostResponse;
 
 @Path("/timeline")
 public class TimelineService {
@@ -30,7 +30,7 @@ public class TimelineService {
 	@Path("everything")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getTimelineWithAllPublicPosts() {
-		List<Post> posts = dbReader.getPosts();
+		List<PostResponse> posts = dbReader.getPosts();
 		return Response.ok(gson.toJson(posts), MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -40,7 +40,7 @@ public class TimelineService {
 	public Response geteTimelineWithPublicPostsWithinLengthLimit(
 			@PathParam("maxLength") int maxLength)
 	{
-		List<Post> posts = dbReader.getPosts(maxLength);
+		List<PostResponse> posts = dbReader.getPosts(maxLength);
 		return Response.ok(gson.toJson(posts), MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -52,7 +52,7 @@ public class TimelineService {
 			@PathParam("maxLength") int maxLength) 
 	{
 		Date endTime = new Date(endTimeLong);
-		List<Post> posts = dbReader.getPosts(endTime, maxLength);
+		List<PostResponse> posts = dbReader.getPosts(endTime, maxLength);
 		return Response.ok(gson.toJson(posts), MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -63,7 +63,7 @@ public class TimelineService {
 			@PathParam("id") String id,
 			@PathParam("maxLength") int maxLength) 
 	{
-		List<Post> posts = dbReader.getPosts(id, maxLength);
+		List<PostResponse> posts = dbReader.getPosts(id, maxLength);
 		return Response.ok(gson.toJson(posts), MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -76,7 +76,7 @@ public class TimelineService {
 			@PathParam("maxLength") int maxLength) 
 	{
 		Date endTime = new Date(endTimeLong);
-		List<Post> posts = dbReader.getPosts(id, endTime, maxLength);
+		List<PostResponse> posts = dbReader.getPosts(id, endTime, maxLength);
 		return Response.ok(gson.toJson(posts), MediaType.APPLICATION_JSON).build();
 	}
 	

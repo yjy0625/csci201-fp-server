@@ -44,6 +44,8 @@ public class ApplicationConfig extends Application {
 		singletons.add(new AddPostService(gson, dbReader, dbWriter, broadcaster));
 		singletons.add(new TimelineService(gson, dbReader));
 		singletons.add(new FileService());
+		
+		System.out.println("Service started.");
 	}
 	
 	@Override
