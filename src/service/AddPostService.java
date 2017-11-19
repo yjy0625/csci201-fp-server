@@ -3,6 +3,7 @@ package service;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -37,6 +38,7 @@ public class AddPostService {
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	public Response addPost(String json) {
 		Post post = gson.fromJson(json, Post.class);
 		boolean success = dbWriter.addPost(post);
@@ -47,7 +49,9 @@ public class AddPostService {
 
 		User user = dbReader.getUserById(post.getUserId());
 		Place place = dbReader.getPlaceById(post.getPlaceId());
-		success = dbWriter.incScoreToUser(user.getId(), place.getPoints());
+		
+		success = success && dbWriter.incScoreToUser(user.getId(), place.getPoints());
+		success = success && dbWriter.incPlaceNumberOfVisit(place.getId());
 
 		if(!success) {
 			throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -61,7 +65,7 @@ public class AddPostService {
 
 		broadcaster.broadcastPost(post);
 
-		return Response.ok().build();
+		return Response.status(200).entity("Post added successfully.").build();
 	}
 
 }

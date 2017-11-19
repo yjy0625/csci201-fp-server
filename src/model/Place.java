@@ -10,6 +10,7 @@ public class Place implements Serializable {
 	private double lat;
 	private double lon;
 	private int points;
+	private String avatarUrl;
 	private int numVisits;
 	
 	public String getId() {
@@ -26,6 +27,9 @@ public class Place implements Serializable {
 	}
 	public int getPoints() {
 		return points;
+	}
+	public String getAvatarUrl() {
+		return avatarUrl;
 	}
 	public int getNumVisits() {
 		return numVisits;
