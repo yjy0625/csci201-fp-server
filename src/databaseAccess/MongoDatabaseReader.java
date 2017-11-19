@@ -207,7 +207,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 
 		// update expiration time
 		cache.expire(placeKey, TTL);
-
+		
 		return place;
 	}
 
@@ -382,7 +382,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 	}
 	
 	public void updatePlaceToCache(Place place) {
-		String placeId = "place/" + place.getId();
+		String placeId = "place/id/" + place.getId();
 		cache.set(placeId, gson.toJson(place));
 		cache.expire(placeId, TTL);
 	}
