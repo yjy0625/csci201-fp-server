@@ -1,71 +1,58 @@
 package service;
 
-import java.io.IOException;
-import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.SocketIOServer;
 import com.google.gson.Gson;
 
-import model.Post;
+import model.PostResponse;
 
-@ServerEndpoint(value = "/ws")
-public class PostUpdateService implements Broadcaster {
+public class PostUpdateService extends Thread implements Broadcaster {
 	
 	private Gson gson;
 	
-	private static Vector<Session> sessions = new Vector<>();
+	private SocketIOServer server;
 	
-	private final Logger logger = LogManager.getLogger("WebSocket");
+	// logger for the class
+	private final Logger logger = LogManager.getLogger("Socket");
 	
 	public PostUpdateService(Gson gson) {
 		this.gson = gson;
-	}
-	
-	@OnOpen
-	public void open(Session session) {
-		logger.info("A connection is made.");
-	}
-	
-	@OnMessage
-	public void onMessage(String message, Session session) {
-		logger.debug("Received a message from client but will not process it.");
-	}
-	
-	@OnClose
-	public void close(Session session) {
-		logger.info("A client disconnected.");
-		sessions.remove(session);
-	}
-	
-	@OnError
-	public void error(Throwable e) {
-		logger.error("Error: " + e.getMessage());
-	}
-	
-	public void broadcastPost(Post post) {
-		AtomicInteger count = new AtomicInteger(0);
 		
+		Configuration config = new Configuration();
+        config.setHostname("localhost");
+        config.setPort(8081);
+
+        server = new SocketIOServer(config);
+        
+        server.addConnectListener( (client) -> {
+        		System.out.println("A new client has Connected!");
+        });
+        
+        this.start();
+	}
+	
+	public void run() {
 		try {
-			for(Session s: sessions) {
-				s.getBasicRemote().sendText(gson.toJson(post));
-				count.incrementAndGet();
-			}
+			server.start();
+	        
+	        System.out.println("Socket started");
+	        
+	        Thread.sleep(Integer.MAX_VALUE);
+	
+	        server.stop();
 		}
-		catch(IOException ioe) {
-			logger.error("An error occurred when broadcasting post {} to users: {}", post.getId(), ioe.getMessage());
+		catch(InterruptedException ie) {
+			logger.error("Got interrupted exception: " + ie.getMessage());
 		}
-		
-		logger.debug("Broadcast post {} to {} users.", post.getId(), count);
+	}
+	
+	public void broadcastPost(PostResponse postResponse) {
+		System.out.println("Broadcasting to " + server.getAllClients().size() + " users");
+		server.getBroadcastOperations().sendEvent("update", gson.toJson(postResponse));
+		logger.info("Broadcast new post {} to {} users", postResponse.getId(), server.getAllClients().size());
 	}
 	
 }

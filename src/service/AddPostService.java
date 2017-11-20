@@ -14,6 +14,7 @@ import databaseAccess.DatabaseReader;
 import databaseAccess.DatabaseWriter;
 import model.Place;
 import model.Post;
+import model.PostResponse;
 import model.User;
 
 @Path("/post")
@@ -62,8 +63,10 @@ public class AddPostService {
 
 		place.incNumOfVisit();
 		dbReader.updatePlaceToCache(place);
+		
+		PostResponse postResponse = new PostResponse(post.getId(), post.getTimestamp(), post.getUserId(), user.getName(), post.getPlaceId(), place.getName(), post.getPostContent(), post.getNumImages(), post.isPublic());
 
-		broadcaster.broadcastPost(post);
+		broadcaster.broadcastPost(postResponse);
 
 		return Response.status(200).entity("Post added successfully.").build();
 	}

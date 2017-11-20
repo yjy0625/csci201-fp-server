@@ -376,7 +376,7 @@ public class MongoDatabaseReader implements DatabaseReader {
 		String userKeyId = "user/id/" + user.getId();
 		cache.set(userKeyId, gson.toJson(user));
 		cache.expire(userKeyId, TTL);
-		String userKeyEmail = "user/id/" + user.getEmail();
+		String userKeyEmail = "user/email/" + user.getEmail();
 		cache.set(userKeyEmail, gson.toJson(user));
 		cache.expire(userKeyEmail, TTL);
 	}

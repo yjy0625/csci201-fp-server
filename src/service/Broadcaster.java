@@ -1,7 +1,7 @@
 package service;
 
-import model.Post;
+import model.PostResponse;
 
 public interface Broadcaster {
-	public void broadcastPost(Post post);
+	public void broadcastPost(PostResponse postResponse);
 }
