@@ -65,8 +65,10 @@ public class AddPostService {
 		dbReader.updatePlaceToCache(place);
 		
 		PostResponse postResponse = new PostResponse(post.getId(), post.getTimestamp(), post.getUserId(), user.getName(), post.getPlaceId(), place.getName(), post.getPostContent(), post.getNumImages(), post.isPublic());
-
-		broadcaster.broadcastPost(postResponse);
+		
+		if(post.isPublic()) {
+			broadcaster.broadcastPost(postResponse);
+		}
 
 		return Response.status(200).entity("Post added successfully.").build();
 	}
