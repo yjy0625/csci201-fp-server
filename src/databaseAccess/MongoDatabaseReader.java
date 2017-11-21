@@ -45,7 +45,6 @@ public class MongoDatabaseReader implements DatabaseReader {
 	private final Logger logger = LogManager.getLogger("DatabaseReader");
 
 	// server cache
-	private final Jedis cache = new Jedis();
 	private static final int TTL = 600;
 
 	private Gson gson;
@@ -80,7 +79,9 @@ public class MongoDatabaseReader implements DatabaseReader {
 
 	public User getUserById(String id) {
 		String userKeyId = "user/id/" + id;
+		Jedis cache = new Jedis();
 		String cachedUser = cache.get(userKeyId);
+		cache.close();
 		User user = null;
 
 		// user not in cache
@@ -104,24 +105,30 @@ public class MongoDatabaseReader implements DatabaseReader {
 			}
 
 			// add user information in cache
+			cache = new Jedis();
 			cache.set(userKeyId, gson.toJson(user));
 			String userKeyEmail = "user/email/" + user.getEmail();
 			cache.set(userKeyEmail, gson.toJson(user));
 			cache.expire(userKeyEmail, TTL);
+			cache.close();
 		}
 		else {
 			user = gson.fromJson(cachedUser, User.class);
 		}
 
 		// update expiration time
+		cache = new Jedis();
 		cache.expire(userKeyId, TTL);
+		cache.close();
 
 		return user;
 	}
 
 	public User getUserByEmail(String email) {
 		String userKeyEmail = "user/email/" + email;
+		Jedis cache = new Jedis();
 		String cachedUser = cache.get(userKeyEmail);
+		cache.close();
 		User user = null;
 
 		// user not in cache
@@ -145,17 +152,21 @@ public class MongoDatabaseReader implements DatabaseReader {
 			}
 
 			// add user information in cache
+			cache = new Jedis();
 			cache.set(userKeyEmail, gson.toJson(user));
 			String userKeyId = "user/id/" + user.getId();
 			cache.set(userKeyId, gson.toJson(user));
 			cache.expire(userKeyId, TTL);
+			cache.close();
 		}
 		else {
 			user = gson.fromJson(cachedUser, User.class);
 		}
 
 		// update expiration time
+		cache = new Jedis();
 		cache.expire(userKeyEmail, TTL);
+		cache.close();
 
 		return user;
 	}
@@ -175,7 +186,9 @@ public class MongoDatabaseReader implements DatabaseReader {
 
 	public Place getPlaceById(String id) {
 		String placeKey = "place/id/" + id;
+		Jedis cache = new Jedis();
 		String cachedPlace = cache.get(placeKey);
+		cache.close();
 		Place place = null;
 
 		// user not in cache
@@ -199,14 +212,18 @@ public class MongoDatabaseReader implements DatabaseReader {
 			}
 
 			// add place information in cache
+			cache = new Jedis();
 			cache.set(placeKey, gson.toJson(place));
+			cache.close();
 		}
 		else {
 			place = gson.fromJson(cachedPlace, Place.class);
 		}
 
 		// update expiration time
+		cache = new Jedis();
 		cache.expire(placeKey, TTL);
+		cache.close();
 		
 		return place;
 	}
@@ -373,18 +390,22 @@ public class MongoDatabaseReader implements DatabaseReader {
 	}
 
 	public void updateUserToCache(User user) {
+		Jedis cache = new Jedis();
 		String userKeyId = "user/id/" + user.getId();
 		cache.set(userKeyId, gson.toJson(user));
 		cache.expire(userKeyId, TTL);
 		String userKeyEmail = "user/email/" + user.getEmail();
 		cache.set(userKeyEmail, gson.toJson(user));
 		cache.expire(userKeyEmail, TTL);
+		cache.close();
 	}
 	
 	public void updatePlaceToCache(Place place) {
+		Jedis cache = new Jedis();
 		String placeId = "place/id/" + place.getId();
 		cache.set(placeId, gson.toJson(place));
 		cache.expire(placeId, TTL);
+		cache.close();
 	}
 
 }
