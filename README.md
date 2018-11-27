@@ -1,4 +1,4 @@
-# CSCI 201 Final Project Server
+# Traveler (Server)
 
 ## Introduction
 This readme is not complete yet. It will be updated later.
